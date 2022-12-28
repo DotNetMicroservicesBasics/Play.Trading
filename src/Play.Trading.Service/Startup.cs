@@ -97,7 +97,7 @@ namespace Play.Trading.Service
         {
             services.AddMassTransit(configure =>
             {
-                configure.UsingPlayEconomyRabbitMq(retryConfig =>
+                configure.UsingPlayEconomyMessageBroker(Configuration, retryConfig =>
                 {
                     retryConfig.Interval(3, TimeSpan.FromSeconds(5));
                     retryConfig.Ignore(typeof(UnknownItemException));
