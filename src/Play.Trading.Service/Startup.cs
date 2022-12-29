@@ -20,6 +20,7 @@ using Play.Identity.Contracts;
 using Play.Trading.Entities;
 using Microsoft.AspNetCore.SignalR;
 using Play.Trading.Service.SignalR;
+using Play.Common.HealthChecks;
 
 namespace Play.Trading.Service
 {
@@ -58,6 +59,9 @@ namespace Play.Trading.Service
             services.AddSingleton<IUserIdProvider, UserIdProvider>()
                     .AddSingleton<MessageHub>()
                     .AddSignalR();
+
+            services.AddHealthChecks()
+                    .AddMongo();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -90,6 +94,7 @@ namespace Play.Trading.Service
             {
                 endpoints.MapControllers();
                 endpoints.MapHub<MessageHub>("/messagehub");
+                endpoints.MapPlayEconomyHealthChecks();
             });
         }
 
