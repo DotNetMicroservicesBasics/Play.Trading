@@ -3,7 +3,7 @@ Play Economy Trading microservice
 
 ## Build the docker image
 ```powershell
-$version="1.0.2"
+$version="1.0.3"
 $env:GH_OWNER="DotNetMicroservicesBasics"
 $env:GH_PAT="[PAT HERE]"
 docker build --secret id=GH_OWNER --secret id=GH_PAT -t play.trading:$version .
