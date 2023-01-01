@@ -1,0 +1,9 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: playtrading-serviceaccount
+  annotations: 
+    azure.workload.identity/client-id: 936d7a6a-43c1-4cef-b503-de7609cc789a
+  labels:
+    azure.workload.identity/use: "true"
