@@ -1,0 +1,10 @@
+microserviceName: playtrading
+
+image: 
+  repository: playeconomyazurecontainerregistry.azurecr.io/play.trading
+  tag: 1.0.3
+
+container:
+  port: 5006
+
+identityClientId: 936d7a6a-43c1-4cef-b503-de7609cc789a

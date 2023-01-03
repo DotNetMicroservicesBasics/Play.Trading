@@ -1,3 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: playtrading-deployement
+spec:
+  selector:
+    matchLabels:
+      app: playtrading
+  template:
+    metadata:
+      labels:
+        app: playtrading
+    spec:
+      serviceAccountName: playtrading-serviceaccount
+      containers:
+        - name: playtrading
+          image: playeconomyazurecontainerregistry.azurecr.io/play.trading:1.0.3
+          env:
+            - name: ServiceSettings__MessageBroker
+              value: AZURESERVICEBUS
+            - name: ServiceSettings__KeyVaultName
+              value: playeconomyazurekeyvault
+            - name: IdentitySettings__Authority
+              value: https://playeconomygateway.eastus.cloudapp.azure.com/identity-svc           
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "250m"
+          ports:
+            - containerPort: 5006
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 5006
+            initialDelaySeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 5006
+            initialDelaySeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: playtrading-service
+spec:
+  type: ClusterIP
+  selector:
+    app: playtrading
+  ports:
+  - port: 80
+    targetPort: 5006
 ---
 apiVersion: v1
 kind: ServiceAccount
