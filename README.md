@@ -112,3 +112,8 @@ helm upgrade --install playtrading-svc oci://$acrname.azurecr.io/helm/microservi
 # to make sure helm Charts cash updated
 helm repo update
 ```
+
+## Required repository secrets for Github workflow
+```powershell
+NUGET_READ_PAT: Created in GitHub user profile --> Settings --> Developer settings --> Personal access token
+```
