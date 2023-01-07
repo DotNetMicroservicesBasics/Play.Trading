@@ -116,4 +116,7 @@ helm repo update
 ## Required repository secrets for Github workflow
 ```powershell
 NUGET_READ_PAT: Created in GitHub user profile --> Settings --> Developer settings --> Personal access token
+AZURE_CLIENT_ID
+AZURE_TENANT_ID
+AZURE_SUBSCRIPTION_ID
 ```
