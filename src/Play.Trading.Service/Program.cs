@@ -17,20 +17,7 @@ namespace Play.Trading.Service
     {
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args)
-            // .ConfigureLogging(options=>{
-            //     options.AddJsonConsole(opts=>{
-            //         opts.JsonWriterOptions = new JsonWriterOptions{Indented = true};
-            //     });
-            // })
-            // .ConfigureLogging( (hostingContext, loggingBuilder) =>
-            // {
-            //     var logger = new LoggerConfiguration()
-            //                     .ReadFrom.Configuration(hostingContext.Configuration)
-            //                     .CreateLogger();  
-            //                    loggingBuilder.AddSerilog(); 
-                                       
-            // })
+            CreateHostBuilder(args)           
             .Build().Run();
         }
 
