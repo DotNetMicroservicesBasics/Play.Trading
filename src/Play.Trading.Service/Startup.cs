@@ -21,6 +21,7 @@ using Play.Trading.Entities;
 using Microsoft.AspNetCore.SignalR;
 using Play.Trading.Service.SignalR;
 using Play.Common.HealthChecks;
+using Microsoft.Extensions.Logging;
 
 namespace Play.Trading.Service
 {
@@ -29,14 +30,14 @@ namespace Play.Trading.Service
         private const string allowedOriginsSettingsKey = "AllowedOrigins";
         public Startup(IConfiguration configuration)
         {
-            Configuration = configuration;            
+            Configuration = configuration;
         }
 
-        public IConfiguration Configuration { get; }        
+        public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
-        {            
+        {
             services.AddMongoDb()
                     .AddMongoRepository<CatalogItem>("CatalogItems")
                     .AddMongoRepository<InventoryItem>("InventoryItems")
@@ -61,7 +62,7 @@ namespace Play.Trading.Service
                     .AddSignalR();
 
             services.AddHealthChecks()
-                    .AddMongo();
+                    .AddMongo();           
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
