@@ -40,6 +40,7 @@ namespace Play.Trading.Service
         {
             services.AddOpenTelemetryTracing(builder=>{
                 var serviceSettings=Configuration.GetSection(nameof(ServiceSettings)).Get<ServiceSettings>();
+                var jaegerSettings=Configuration.GetSection(nameof(JaegerSettings)).Get<JaegerSettings>();
 
                 builder.AddSource(serviceSettings.ServiceName)
                         .AddSource("MassTransit")
@@ -48,7 +49,10 @@ namespace Play.Trading.Service
                                             .AddService(serviceName: serviceSettings.ServiceName))
                         .AddHttpClientInstrumentation()
                         .AddAspNetCoreInstrumentation()
-                        .AddConsoleExporter();
+                        .AddJaegerExporter(options=>{
+                            options.AgentHost=jaegerSettings.Host;
+                            options.AgentPort=jaegerSettings.Port;
+                        });
             });
 
             services.AddMongoDb()
