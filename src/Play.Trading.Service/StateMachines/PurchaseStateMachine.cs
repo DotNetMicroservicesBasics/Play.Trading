@@ -1,8 +1,12 @@
 
 
 using System;
+using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using MassTransit;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Play.Common.Settings;
 using Play.Identity.Contracts;
 using Play.Inventory.Contracts;
 using Play.Trading.Service.Activities;
@@ -16,6 +20,10 @@ namespace Play.Trading.Service.StateMachines
         private readonly MessageHub _hub;
 
         private readonly ILogger<PurchaseStateMachine> _logger;
+
+        private readonly Counter<int> _purchaseStartedCounter;
+        private readonly Counter<int> _purchaseSuccessCounter;
+        private readonly Counter<int> _purchaseFailedCounter;
 
         public State Accepted { get; set; }
         public State ItemsGranted { get; set; }
@@ -34,7 +42,7 @@ namespace Play.Trading.Service.StateMachines
 
         public Event<Fault<DebitGil>> DebitGilFaulted { get; }
 
-        public PurchaseStateMachine(MessageHub hub, ILogger<PurchaseStateMachine> logger)
+        public PurchaseStateMachine(MessageHub hub, ILogger<PurchaseStateMachine> logger, IConfiguration configuration)
         {
             InstanceState(state => state.CurrentState);
             ConfigureEvents();
@@ -46,6 +54,12 @@ namespace Play.Trading.Service.StateMachines
             ConfigureCompleted();
             _hub = hub;
             _logger = logger;
+
+            var serviceSettings = configuration.GetSection(nameof(ServiceSettings)).Get<ServiceSettings>();
+            var meter = new Meter(serviceSettings.ServiceName);
+            _purchaseStartedCounter = meter.CreateCounter<int>("PurchaseStarted");
+            _purchaseSuccessCounter = meter.CreateCounter<int>("PurchaseSuccess");
+            _purchaseFailedCounter = meter.CreateCounter<int>("PurchaseFailed");
         }
 
         private void ConfigureEvents()
@@ -72,6 +86,7 @@ namespace Play.Trading.Service.StateMachines
                     context.Saga.LastUpdatedAt = context.Saga.ReceivedAt;
                     _logger.LogInformation("Calculating total price for purchase with CorrelationId {CorrelationId}...",
                             context.Saga.CorrelationId);
+                    _purchaseStartedCounter.Add(1, new KeyValuePair<string, object>(nameof(context.Saga.ItemId), context.Saga.ItemId));
                 })
                 .Activity(x => x.OfType<CalculatePurchaseTotalActivity>())
                 .Send(context => new GrantItems(
@@ -91,6 +106,7 @@ namespace Play.Trading.Service.StateMachines
                                                         "Could not calculate the total price of purchase with CorrelationId {CorrelationId}. Error: {ErrorMessage}",
                                                         context.Saga.CorrelationId,
                                                         context.Saga.ErrorMessage);
+                                            _purchaseFailedCounter.Add(1, new KeyValuePair<string, object>(nameof(context.Saga.ItemId), context.Saga.ItemId));
                                         })
                                         .TransitionTo(Faulted)
                                         .ThenAsync(async context => await _hub.SendStatusAsync(context.Saga))
@@ -127,6 +143,7 @@ namespace Play.Trading.Service.StateMachines
                             "Could not grant items for purchase with CorrelationId {CorrelationId}. Error: {ErrorMessage}",
                             context.Saga.CorrelationId,
                             context.Saga.ErrorMessage);
+                        _purchaseFailedCounter.Add(1, new KeyValuePair<string, object>(nameof(context.Saga.ItemId), context.Saga.ItemId));
                     })
                     .TransitionTo(Faulted)
                     .ThenAsync(async context => await _hub.SendStatusAsync(context.Saga))
@@ -146,6 +163,7 @@ namespace Play.Trading.Service.StateMachines
                             "The total price of purchase with CorrelationId {CorrelationId} has been debited from user {UserId}. Purchase complete.",
                             context.Saga.CorrelationId,
                             context.Saga.UserId);
+                            _purchaseSuccessCounter.Add(1, new KeyValuePair<string, object>(nameof(context.Saga.ItemId), context.Saga.ItemId));
                     })
                     .TransitionTo(Completed)
                     .ThenAsync(async context => await _hub.SendStatusAsync(context.Saga)),
@@ -165,6 +183,7 @@ namespace Play.Trading.Service.StateMachines
                             context.Saga.CorrelationId,
                             context.Saga.UserId,
                             context.Saga.ErrorMessage);
+                            _purchaseFailedCounter.Add(1, new KeyValuePair<string, object>(nameof(context.Saga.ItemId), context.Saga.ItemId));
                         })
                         .TransitionTo(Faulted)
                         .ThenAsync(async context => await _hub.SendStatusAsync(context.Saga))

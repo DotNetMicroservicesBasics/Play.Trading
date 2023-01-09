@@ -23,6 +23,7 @@ using Play.Common.HealthChecks;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Resources;
 using Play.Common.OpenTelemetry;
+using OpenTelemetry.Metrics;
 
 namespace Play.Trading.Service
 {
@@ -40,6 +41,15 @@ namespace Play.Trading.Service
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddTracing(Configuration);
+
+            services.AddOpenTelemetryMetrics(builder=>{
+                var serviceSettings = Configuration.GetSection(nameof(ServiceSettings)).Get<ServiceSettings>();
+                builder.AddMeter(serviceSettings.ServiceName)
+                        .AddHttpClientInstrumentation()
+                        .AddAspNetCoreInstrumentation()
+                        .AddPrometheusExporter();
+
+            });
 
             services.AddMongoDb()
                     .AddMongoRepository<CatalogItem>("CatalogItems")
@@ -85,6 +95,8 @@ namespace Play.Trading.Service
                             .AllowCredentials();
                 });
             }
+            
+            app.UseOpenTelemetryPrometheusScrapingEndpoint();
 
             app.UseHttpsRedirection();
 
