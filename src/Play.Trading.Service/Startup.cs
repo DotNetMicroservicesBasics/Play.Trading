@@ -22,6 +22,7 @@ using Play.Trading.Service.SignalR;
 using Play.Common.HealthChecks;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Resources;
+using Play.Common.OpenTelemetry;
 
 namespace Play.Trading.Service
 {
@@ -38,22 +39,7 @@ namespace Play.Trading.Service
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddOpenTelemetryTracing(builder=>{
-                var serviceSettings=Configuration.GetSection(nameof(ServiceSettings)).Get<ServiceSettings>();
-                var jaegerSettings=Configuration.GetSection(nameof(JaegerSettings)).Get<JaegerSettings>();
-
-                builder.AddSource(serviceSettings.ServiceName)
-                        .AddSource("MassTransit")
-                        .SetResourceBuilder(
-                            ResourceBuilder.CreateDefault()
-                                            .AddService(serviceName: serviceSettings.ServiceName))
-                        .AddHttpClientInstrumentation()
-                        .AddAspNetCoreInstrumentation()
-                        .AddJaegerExporter(options=>{
-                            options.AgentHost=jaegerSettings.Host;
-                            options.AgentPort=jaegerSettings.Port;
-                        });
-            });
+            services.AddTracing(Configuration);
 
             services.AddMongoDb()
                     .AddMongoRepository<CatalogItem>("CatalogItems")
