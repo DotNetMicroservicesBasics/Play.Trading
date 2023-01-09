@@ -40,16 +40,9 @@ namespace Play.Trading.Service
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddTracing(Configuration);
-
-            services.AddOpenTelemetryMetrics(builder=>{
-                var serviceSettings = Configuration.GetSection(nameof(ServiceSettings)).Get<ServiceSettings>();
-                builder.AddMeter(serviceSettings.ServiceName)
-                        .AddHttpClientInstrumentation()
-                        .AddAspNetCoreInstrumentation()
-                        .AddPrometheusExporter();
-
-            });
+            services.AddTracing(Configuration)
+                    .AddMetrics(Configuration);
+            
 
             services.AddMongoDb()
                     .AddMongoRepository<CatalogItem>("CatalogItems")
