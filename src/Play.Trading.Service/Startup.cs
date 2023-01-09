@@ -13,7 +13,6 @@ using Play.Common.MassTansit;
 using Play.Common.Settings;
 using Play.Trading.Service.StateMachines;
 using Play.Trading.Service.Exceptions;
-using GreenPipes;
 using Play.Trading.Service.Settings;
 using Play.Inventory.Contracts;
 using Play.Identity.Contracts;
@@ -21,7 +20,6 @@ using Play.Trading.Entities;
 using Microsoft.AspNetCore.SignalR;
 using Play.Trading.Service.SignalR;
 using Play.Common.HealthChecks;
-using Microsoft.Extensions.Logging;
 
 namespace Play.Trading.Service
 {
@@ -128,11 +126,6 @@ namespace Play.Trading.Service
             EndpointConvention.Map<DebitGil>(new Uri(queueSettings.DebitGilQueueAddress));
 
             EndpointConvention.Map<SubtractItems>(new Uri(queueSettings.SubtractItemsQueueAddress));
-
-            services.AddMassTransitHostedService();
-
-            services.AddGenericRequestClient();
-
         }
     }
 }

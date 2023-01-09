@@ -46,7 +46,7 @@ kubectl apply -f .\kubernetes\trading.yaml -n $namespace
 kubectl get pods -n $namespace -w
 
 # output pod logs
-$podname="playtrading-deployement-6d59dfbd5d-vx276"
+$podname="playtrading-deployement-fbdd45d8b-pdsvn"
 kubectl logs $podname -n $namespace
 
 # list pod details
