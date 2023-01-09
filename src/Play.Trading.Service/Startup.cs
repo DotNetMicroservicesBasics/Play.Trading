@@ -20,6 +20,8 @@ using Play.Trading.Entities;
 using Microsoft.AspNetCore.SignalR;
 using Play.Trading.Service.SignalR;
 using Play.Common.HealthChecks;
+using OpenTelemetry.Trace;
+using OpenTelemetry.Resources;
 
 namespace Play.Trading.Service
 {
@@ -36,6 +38,19 @@ namespace Play.Trading.Service
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddOpenTelemetryTracing(builder=>{
+                var serviceSettings=Configuration.GetSection(nameof(ServiceSettings)).Get<ServiceSettings>();
+
+                builder.AddSource(serviceSettings.ServiceName)
+                        .AddSource("MassTransit")
+                        .SetResourceBuilder(
+                            ResourceBuilder.CreateDefault()
+                                            .AddService(serviceName: serviceSettings.ServiceName))
+                        .AddHttpClientInstrumentation()
+                        .AddAspNetCoreInstrumentation()
+                        .AddConsoleExporter();
+            });
+
             services.AddMongoDb()
                     .AddMongoRepository<CatalogItem>("CatalogItems")
                     .AddMongoRepository<InventoryItem>("InventoryItems")
